@@ -1,23 +1,16 @@
-#coding=utf-8
-from multiprocessing import Process
+import multiprocessing
+import os
 
-def target_function(index,sublist):
-    print(index,sublist)
+def run_proc(name):
+    print('Child process {0} {1} Running '.format(name, os.getpid()))
+    for i in range(10000000000000000):
+        a = 4 * 23
 
-
-if __name__=="__main__":
-    TXT_FILE = "123.txt"
-    n_processes = 2 #number of processes
-    f = open(TXT_FILE,'r')
-    image_list = f.readlines()
-    f.close()
-    n_total = len(image_list)
-    processes=[]
-    x=10
-    for i in range(n_processes):
-        processes.append(Process(target=target_function,args=(i,x)))
-
-    for p in processes:
+if __name__ == '__main__':
+    print('Parent process {0} is Running'.format(os.getpid()))
+    for i in range(3):
+        p = multiprocessing.Process(target=run_proc, args=(str(i),))
+        print('process start')
         p.start()
-    # for p in processes:
-    #     p.join() #join 的作用是用来阻塞主线程的使用方案
+    p.join()
+    print('Process close')

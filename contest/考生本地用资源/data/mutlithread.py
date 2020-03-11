@@ -244,8 +244,8 @@ def func(data,i, size):
             for index in range(dims):
                 temp.append(float(allInfo[index]))
             tmplabels.append(temp)
-    for i in range(1000000000):
-        a =  23* 23
+    # for i in range(1000000000):
+    #     a =  23* 23
 
     # if i ==1 :
     #     time.sleep(10)
@@ -270,7 +270,7 @@ if __name__ == '__main__':
     ISOTIMEFORMAT = '%Y-%m-%d %H:%M:%S.%f'
     theTime = datetime.datetime.now().strftime(ISOTIMEFORMAT)
     print(theTime)
-    procesors=3
+    procesors=1
     for i in range(procesors):
         # 让子进程去修改主进程的特殊字典
         p = Process(target=func, args=(lines,i, procesors))
