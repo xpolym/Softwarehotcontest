@@ -39,6 +39,8 @@ class LR:
         fr.close()
         feats = np.array(feats)
         labels = np.array(labels)
+        print('---leixing',feats.shape)
+        print('---leixing',labels.shape)
         return feats, labels
 
     def loadTrainData(self):

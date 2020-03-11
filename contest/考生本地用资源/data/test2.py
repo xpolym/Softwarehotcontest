@@ -8,7 +8,7 @@ def run_proc(name):
 
 if __name__ == '__main__':
     print('Parent process {0} is Running'.format(os.getpid()))
-    for i in range(3):
+    for i in range(2):
         p = multiprocessing.Process(target=run_proc, args=(str(i),))
         print('process start')
         p.start()

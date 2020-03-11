@@ -270,7 +270,7 @@ if __name__ == '__main__':
     ISOTIMEFORMAT = '%Y-%m-%d %H:%M:%S.%f'
     theTime = datetime.datetime.now().strftime(ISOTIMEFORMAT)
     print(theTime)
-    procesors=1
+    procesors=4
     for i in range(procesors):
         # 让子进程去修改主进程的特殊字典
         p = Process(target=func, args=(lines,i, procesors))

@@ -3,7 +3,8 @@ import datetime
 import matplotlib.pyplot as plt
 import sys
 import numpy as np
-import multiprocessing
+from  multiprocessing import  Process,Pool
+
 
 
 class LR:
@@ -11,7 +12,7 @@ class LR:
         self.train_file = train_file_name
         self.predict_file = test_file_name
         self.predict_result_file = predict_result_file_name
-        self.max_iters = 2
+        self.max_iters = 50
         self.rate = 0.01
         self.lam = 0.03
         self.feats = []
@@ -21,25 +22,110 @@ class LR:
         self.param_num = 0
         self.weight = []
 
+    def processdata(self,data,start,label_existed_flag):
+
+
+
+        # return_dict.append(start)
+        tmpfeats = []
+        tmplabels=[]
+        # print('id  ',i,'start   ',start,'end  ',end)
+        # label_existed_flag = 1
+        index=0
+        for line in data:
+            temp = []
+            allInfo = line.strip().split(',')
+            dims = len(allInfo)
+            # print('current diminsions',dims)
+            if label_existed_flag == 1:
+                for index in range(dims-1):
+                    temp.append(float(allInfo[index]))
+                tmpfeats.append(temp)
+                tmplabels.append(float(allInfo[dims-1]))
+            else:
+                for index in range(dims):
+                    temp.append(float(allInfo[index]))
+                tmpfeats.append(temp)
+
+            # return_labels[start+index]=tmplabels
+            # return_feats[start+index]=tmpfeats
+        # for i in range(1000000000):
+        #     a =  23* 23
+
+        # if i ==1 :
+        #     time.sleep(10)
+        # print('this is done',start)
+
+
+        return tmpfeats,tmplabels
+
     def loadDataSet(self, file_name, label_existed_flag):
         print('read data time')
         ISOTIMEFORMAT = '%Y-%m-%d %H:%M:%S.%f'
         theTime = datetime.datetime.now().strftime(ISOTIMEFORMAT)
         print(theTime)
 
-        feats = []
-        labels = []
-        # file_name='train_data.txt'
-        # print('filename--',file_name)
         fr = open(file_name)
         lines = fr.readlines()
         print('linessss',len(lines))
 
+
+        processor = 1
+        n = len(lines)
+        size = int(n / processor)
+
+        p = Pool(processor)
+
+        getjoin=[]
+        res = []
+        for i in range(processor):
+
+            start = size * i
+            end = (i + 1) * size if (i + 1) * size < n else n
+            # p.close()
+            # tmpf,tmpl=p.apply_async(run, args=(lines, i, processor,))
+            res.append(p.apply_async(self.processdata, args=(lines[start:end], start,label_existed_flag)))
+            # labels.append(tmpl)
+
+            #process part
+            # p = Process(target=run, args=(lines[start:end],start,return_feats,return_labels))
+            # p.start()
+            # getjoin.append(p)
+
+            # print(str(i) + ' processor started !')
+        p.close()
+
+
+
+        feats=[]
+        labels=[]
+
+        for i in res:
+            # feats.append(i.get())
+            a,b = i.get()
+            feats.extend(a)
+            labels.extend(b)
+
+        feats= np.array(feats)
+        labels=np.array(labels)
+
+
+        fr.close()
+        theTime = datetime.datetime.now().strftime(ISOTIMEFORMAT)
+        print(theTime)
+        print('---leixing',feats.shape)
+        print('---leixing',labels.shape)
+        return feats,labels
+
+    def loadDataSetold(self,file_name,label_exited_flag):
+        feats = []
+        labels = []
+        fr = open(file_name)
+        lines = fr.readlines()
         for line in lines:
             temp = []
             allInfo = line.strip().split(',')
             dims = len(allInfo)
-            # print('current diminsions',dims)
             if label_existed_flag == 1:
                 for index in range(dims-1):
                     temp.append(float(allInfo[index]))
@@ -49,14 +135,11 @@ class LR:
                 for index in range(dims):
                     temp.append(float(allInfo[index]))
                 feats.append(temp)
-        theTime = datetime.datetime.now().strftime(ISOTIMEFORMAT)
-        print(theTime)
         fr.close()
         feats = np.array(feats)
         labels = np.array(labels)
-        theTime = datetime.datetime.now().strftime(ISOTIMEFORMAT)
-        print(theTime)
-
+        print('---leixing',feats.shape)
+        print('---leixing',labels.shape)
         return feats, labels
 
     def loadTrainData(self):
@@ -120,9 +203,10 @@ class LR:
 
     def predict(self):
         self.loadTestData()
-        preval = self.compute(len(self.feats_test),
-                              self.param_num, self.feats_test, self.weight)
-        self.labels_predict = (preval+0.5).astype(np.int)
+        print('预测的时候',self.feats_test.shape)
+        print('weight--',self.weight.shape)
+        preval = self.compute(len(self.feats_test),self.param_num, self.feats_test, self.weight)
+        self.labels_predict = (preval+0.3).astype(np.int)
         self.savePredictResult()
 
     def train(self):
@@ -215,6 +299,9 @@ class LR:
     def bfgstrain(self):
         self.loadTrainData()
 
+        # print('feats',self.feats
+
+
         self.weight,costs=self.BFGS(self.feats,self.labels,self.max_iters)
         # self.weight = self.weight
         # self.weight = self.weight
@@ -301,8 +388,8 @@ if __name__ == "__main__":
     ISOTIMEFORMAT = '%Y-%m-%d %H:%M:%S.%f'
     theTime = datetime.datetime.now().strftime(ISOTIMEFORMAT)
     print(theTime)
-    lr.bfgstrain()
-    # lr.train()
+    # lr.bfgstrain()
+    lr.train()
     lr.predict()
     theTime = datetime.datetime.now().strftime(ISOTIMEFORMAT)
     print(theTime)
