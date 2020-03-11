@@ -3,6 +3,7 @@ import datetime
 import matplotlib.pyplot as plt
 import sys
 import numpy as np
+import multiprocessing
 
 
 class LR:
@@ -11,7 +12,8 @@ class LR:
         self.predict_file = test_file_name
         self.predict_result_file = predict_result_file_name
         self.max_iters = 2
-        self.rate = 0.07
+        self.rate = 0.01
+        self.lam = 0.03
         self.feats = []
         self.labels = []
         self.feats_test = []
@@ -20,12 +22,19 @@ class LR:
         self.weight = []
 
     def loadDataSet(self, file_name, label_existed_flag):
+        print('read data time')
+        ISOTIMEFORMAT = '%Y-%m-%d %H:%M:%S.%f'
+        theTime = datetime.datetime.now().strftime(ISOTIMEFORMAT)
+        print(theTime)
+
         feats = []
         labels = []
         # file_name='train_data.txt'
         # print('filename--',file_name)
         fr = open(file_name)
         lines = fr.readlines()
+        print('linessss',len(lines))
+
         for line in lines:
             temp = []
             allInfo = line.strip().split(',')
@@ -40,9 +49,14 @@ class LR:
                 for index in range(dims):
                     temp.append(float(allInfo[index]))
                 feats.append(temp)
+        theTime = datetime.datetime.now().strftime(ISOTIMEFORMAT)
+        print(theTime)
         fr.close()
         feats = np.array(feats)
         labels = np.array(labels)
+        theTime = datetime.datetime.now().strftime(ISOTIMEFORMAT)
+        print(theTime)
+
         return feats, labels
 
     def loadTrainData(self):
@@ -95,7 +109,8 @@ class LR:
 
     def initParams(self):
         self.weight = np.ones((self.param_num,), dtype=np.float)
-        print('selfweight',self.weight)
+        # self.weight=[]
+        # print('selfweight',self.weight)
 
     def compute(self, recNum, param_num, feats, w):
         return self.sigmod(np.dot(feats, w))
@@ -123,7 +138,7 @@ class LR:
         self.initParams()
         costs=[]
         iterations=[]
-        ISOTIMEFORMAT = '%Y-%m-%d %H:%M:%S,f'
+        ISOTIMEFORMAT = '%Y-%m-%d %H:%M:%S.%f'
         for i in range(self.max_iters):
             preval = self.compute(recNum, self.param_num,
                                   self.feats, self.weight)
@@ -144,34 +159,58 @@ class LR:
             # if i>=30:
             #     self.rate = 0.03
             # elif 30>i and \
-            if i>10:
-                self.rate = 0.033
-            else:
-                self.rate = 0.5*(0.97**i)
+            # if i>10:
+            #     self.rate = 0.002
+            # else:
+            #     self.rate = 0.5*(0.97**i)
 
             delt_w = np.dot(self.feats.T, err)  #.T 表示的是转置的意思
             delt_w /= recNum
-            self.weight = self.weight + self.rate*delt_w
+            self.weight = self.weight + self.rate*delt_w -self.weight*(1-self.rate*self.lam/recNum)
 
-        print('self.weigth',self.weight)
+        # print('self.weigth',self.weight)
         plt.plot(iterations,costs)
         plt.show()
 
-    def alphA(self,x, y, theta, pk):  # 选取前20次迭代cost最小的alpha
+    def alphA(self,x, y, theta, pk,itertime):  # 选取前20次迭代cost最小的alpha
         c = float("inf")
         t = theta
         #theta  的默认的数值是1的列向量
+        print('itertime:',itertime)
+        if itertime==1:
+            for k in range(1, 50):
+                # a = (0.03/itertime**3) / k  #
 
-        for k in range(1, 100):
-            a = 1.2 / k ** 2  #
-            theta = t + a * pk  # 比重 传入的pk  是一次线性方程的解
-            #t=theta ,对theta 进行更新 。  theta =  t + 学习率 * theta 把其
-            f = np.sum(np.dot(x.T, self.sigmod(np.dot(x, theta)) - y))
-            if abs(f) > c:
-                print('last k',k)
-                break
-            c = abs(f)
-            alpha = a
+                # if itertime==2:
+                a = 1.2/k**2
+                theta = t + a * pk  # 比重 传入的pk  是一次线性方程的解
+                #t=theta ,对theta 进行更新 。  theta =  t + 学习率 * theta 把其
+                f = np.sum(np.dot(x.T, self.sigmod(np.dot(x, theta)) - y))
+                # print('f',f)
+                if abs(f) > c:
+                    print('last k',k)
+                    break
+                else:
+                    c = abs(f)
+                alpha = a
+                # print('alpha变化', alpha)
+        else:
+            for k in range(1, 50):
+                # a = (0.03/itertime**3) / k  #
+
+                # if itertime==2:
+                a = 1.2 / k ** 2
+                theta = t + a * pk  # 比重 传入的pk  是一次线性方程的解
+                # t=theta ,对theta 进行更新 。  theta =  t + 学习率 * theta 把其
+                f = np.sum(np.dot(x.T, self.sigmod(np.dot(x, theta)) - y))
+                # print('f', f)
+                if abs(f) > c:
+                    print('last k', k)
+                    break
+                else:
+                    c = abs(f)
+                alpha = a
+                # print('alpha变化',alpha)
         return alpha
     def bfgstrain(self):
         self.loadTrainData()
@@ -203,7 +242,7 @@ class LR:
         for it in range(iter):
             pk = -1 * np.linalg.solve(Bk, grad_last)  # 求解线性方程组
 
-            rate = self.alphA(x, y, theta, pk)
+            rate = self.alphA(x, y, theta, pk,it+1)
             theta = theta + rate * pk
             grad = np.dot(x.T, self.sigmod(np.dot(x, theta)) - y)
             delta_k = rate * pk
@@ -259,7 +298,7 @@ if __name__ == "__main__":
 
     # lr bfgs
     lr = LR(train_file, test_file, predict_file)
-    ISOTIMEFORMAT = '%Y-%m-%d %H:%M:%S,f'
+    ISOTIMEFORMAT = '%Y-%m-%d %H:%M:%S.%f'
     theTime = datetime.datetime.now().strftime(ISOTIMEFORMAT)
     print(theTime)
     lr.bfgstrain()

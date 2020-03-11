@@ -162,8 +162,8 @@ class LR:
         t = theta
         #theta  的默认的数值是1的列向量
 
-        for k in range(1, 100):
-            a = 1.0 / k ** 2  #
+        for k in range(1, 50):
+            a = 3 / k ** 2  #
             theta = t + a * pk  # 比重 传入的pk  是一次线性方程的解
             #t=theta ,对theta 进行更新 。  theta =  t + 学习率 * theta 把其
             f = np.sum(np.dot(x.T, self.sigmod(np.dot(x, theta)) - y))
