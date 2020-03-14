@@ -1,0 +1,17 @@
+{
+    "files.associations": {
+        "ostream": "cpp",
+        "iosfwd": "cpp",
+        "*.tcc": "cpp",
+        "unordered_map": "cpp",
+        "fstream": "cpp",
+        "istream": "cpp",
+        "numeric": "cpp",
+        "sstream": "cpp",
+        "iostream": "cpp",
+        "thread": "cpp",
+        "ctime": "cpp",
+        "string": "cpp",
+        "chrono": "cpp"
+    }
+}

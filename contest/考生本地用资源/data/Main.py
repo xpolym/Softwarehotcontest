@@ -117,7 +117,10 @@ class LR:
         print('---leixing',labels.shape)
         return feats,labels
 
-    def loadDataSetold(self,file_name,label_exited_flag):
+    def loadDataSetold(self,file_name,label_existed_flag):
+        print("The time cosr")
+        theTime = datetime.datetime.now().strftime(ISOTIMEFORMAT)
+        print(theTime)
         feats = []
         labels = []
         fr = open(file_name)
@@ -140,13 +143,15 @@ class LR:
         labels = np.array(labels)
         print('---leixing',feats.shape)
         print('---leixing',labels.shape)
+        theTime = datetime.datetime.now().strftime(ISOTIMEFORMAT)
+        print(theTime)
         return feats, labels
 
     def loadTrainData(self):
-        self.feats, self.labels = self.loadDataSet(self.train_file, 1)
+        self.feats, self.labels = self.loadDataSetold(self.train_file, 1)
 
     def loadTestData(self):
-        self.feats_test, self.labels_predict = self.loadDataSet(
+        self.feats_test, self.labels_predict = self.loadDataSetold(
             self.predict_file, 0)
 
     def savePredictResult(self):
