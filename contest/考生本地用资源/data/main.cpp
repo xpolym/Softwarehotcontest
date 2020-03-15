@@ -4,16 +4,17 @@
 #include <fstream>
 #include <cmath>
 #include <cstdlib>
+#include <thread>
 using namespace std;
 // #define TEST
 struct Data {
-    vector<double> features;
+    vector<float> features;
     int label;
-    Data(vector<double> f, int l) : features(f), label(l)
+    Data(vector<float> f, int l) : features(f), label(l)
     {}
 };
 struct Param {
-    vector<double> wtSet;
+    vector<float> wtSet;
 };
 
 
@@ -41,17 +42,22 @@ private:
     bool loadTestData();
     int storePredict(vector<int> &predict);
     void initParam();
-    double wxbCalc(const Data &data);
-    double sigmoidCalc(const double wxb);
-    double lossCal();
-    double gradientSlope(const vector<Data> &dataSet, int index, const vector<double> &sigmoidVec);
+    float wxbCalc(const Data &data);
+    float sigmoidCalc(const float wxb);
+    float lossCal();
+    float gradientSlope(const vector<Data> &dataSet, int index, const vector<float> &sigmoidVec);
+    
+    bool loadTrainDatamulti();
+    static void dataload(int step,vector<Data> *trainset,string *filename);
+    static void wtCal(Param *param,int start,int end);
+
 
 private:
     int featuresNum;
-    const double wtInitV = 1.0;
-    const double stepSize = 0.035;
+    const float wtInitV = 1.0;
+    const float stepSize = 0.035;
     const int maxIterTimes = 300;
-    const double predictTrueThresh = 0.5;
+    const float predictTrueThresh = 0.5;
     const int train_show_step = 10;
 };
 
@@ -69,7 +75,7 @@ bool LR::loadTrainData()
     ifstream infile(trainFile.c_str());
     string line,tmp;
     int i = 0;
-	vector<double> feature;
+	vector<float> feature;
 	
     if (!infile) {
         cout << "打开训练文件失败" << endl;
@@ -106,6 +112,83 @@ bool LR::loadTrainData()
     infile.close();
     cout<<"load lines"<<trainDataSet.size()<<endl;
     
+    return true;
+}
+void LR::dataload(int step,vector<Data> *trainset,string *filename)
+{
+    ifstream infile(*filename);
+    // ifstream infile("mydata.txt");
+    // ifstream infile("./data/train_data1.txt");
+    vector<float> feature;
+    // vector<float>feature;
+    string line,tmp;
+    int nums=0;
+    int start=clock();
+    for(int i=1;i<step;i++){
+        getline(infile, line);
+    }
+
+    while (infile) {
+
+        getline(infile, line);
+        // if (i==1) {
+        //     i = 0 ;
+        //     continue;
+        // }
+        // else{ i = i + 1;
+
+        // }
+            
+        if (line.size()==0){
+            break;
+        }
+        feature.clear();
+		istringstream sin(line);
+        while (getline(sin, tmp, ',')) { 
+			feature.push_back(stod(tmp)); 
+		}
+        int ftf;
+        ftf = (int)feature.back();
+        feature.pop_back();
+        (*trainset).push_back(Data(feature,ftf));
+        getline(infile, line);
+        getline(infile, line);
+        getline(infile, line);
+    }
+
+}
+
+
+bool LR::loadTrainDatamulti()
+{
+    vector<Data> trainDataSet1;
+    vector<Data> trainDataSet2;
+    vector<Data> trainDataSet3;
+    thread t1(dataload,1,&trainDataSet,&trainFile);
+    thread t2(dataload,2,&trainDataSet1,&trainFile);
+    thread t3(dataload,3,&trainDataSet2,&trainFile);
+    thread t4(dataload,4,&trainDataSet3,&trainFile);
+    t1.join();
+    t2.join();
+    t3.join();
+    t4.join();
+
+
+    cout<<"Trainset 1 "<<trainDataSet.size()<<endl;
+    cout<<"Trainset 2 "<<trainDataSet1.size()<<endl;
+    cout<<"Trainset 3 "<<trainDataSet2.size()<<endl;
+    cout<<"Trainset 4 "<<trainDataSet3.size()<<endl;
+
+    trainDataSet.insert(trainDataSet.end(),trainDataSet1.begin(),trainDataSet1.end());
+    trainDataSet.insert(trainDataSet.end(),trainDataSet2.begin(),trainDataSet2.end());
+    trainDataSet.insert(trainDataSet.end(),trainDataSet3.begin(),trainDataSet3.end());
+
+    cout<<"this is main "<<trainDataSet.size()<<endl;
+   
+
+
+
+
     return true;
 }
 void newload(){
@@ -156,7 +239,9 @@ void LR::initParam()
 bool LR::init()
 {
     trainDataSet.clear();
-    bool status = loadTrainData();
+    // bool status = loadTrainData();
+    bool status = loadTrainDatamulti();
+
     if (status != true) {
         return false;
     }
@@ -167,11 +252,11 @@ bool LR::init()
 }
 
 
-double LR::wxbCalc(const Data &data)
+float LR::wxbCalc(const Data &data)
 {
-    double mulSum = 0.0L;
+    float mulSum = 0.0L;
     int i;
-    double wtv, feav;
+    float wtv, feav;
     for (i = 0; i < param.wtSet.size(); i++) {
         wtv = param.wtSet[i];
         feav = data.features[i];
@@ -181,17 +266,17 @@ double LR::wxbCalc(const Data &data)
     return mulSum;
 }
 
-inline double LR::sigmoidCalc(const double wxb)
+inline float LR::sigmoidCalc(const float wxb)
 {
-    double expv = exp(-1 * wxb);
-    double expvInv = 1 / (1 + expv);
+    float expv = exp(-1 * wxb);
+    float expvInv = 1 / (1 + expv);
     return expvInv;
 }
 
 
-double LR::lossCal()
+float LR::lossCal()
 {
-    double lossV = 0.0L;
+    float lossV = 0.0L;
     int i;
     cout<<"we are in loss cal"<<endl;
 
@@ -204,11 +289,11 @@ double LR::lossCal()
 }
 
 
-double LR::gradientSlope(const vector<Data> &dataSet, int index, const vector<double> &sigmoidVec)
+float LR::gradientSlope(const vector<Data> &dataSet, int index, const vector<float> &sigmoidVec)
 {
-    double gsV = 0.0L;
+    float gsV = 0.0L;
     int i;
-    double sigv, label;
+    float sigv, label;
     for (i = 0; i < dataSet.size(); i++) {
         sigv = sigmoidVec[i];
         label = dataSet[i].label;
@@ -218,25 +303,46 @@ double LR::gradientSlope(const vector<Data> &dataSet, int index, const vector<do
     gsV = gsV / dataSet.size();
     return gsV;
 }
+void LR::wtCal(Param *param,int start,int end)
+{
+    cout<<"This is param's size "<<(*param).wtSet.size()<<endl;
+    (*param).wtSet[0]=1;
+    // for (j = 0; j < (*param).wtSet.size(); j++){
+        // param.wtSet[j] += stepSize * gradientSlope(trainDataSet, j, sigmoidVec);
+    // }
+
+    cout<<"we have receive start and end are"<<start<<" "<<end<<endl; 
+    cout<<"THis is thread in wtcal and index is:"<<endl;
+}
 
 void LR::train()
 {
-    double sigmoidVal;
-    double wxbVal;
+    float sigmoidVal;
+    float wxbVal;
     int i, j;
 
     for (i = 0; i < maxIterTimes; i++) {
-        vector<double> sigmoidVec;
+        vector<float> sigmoidVec;
 
-        for (j = 0; j < trainDataSet.size(); j++) {  //this j 是表示的是第几个数据
+        for (j = 0; j < trainDataSet.size(); j++) {  //this j 是表示的是第几个数据 这个地方我们分配到多核去
             wxbVal = wxbCalc(trainDataSet[j]);
-            sigmoidVal = sigmoidCalc(wxbCalc(trainDataSet[j]));
+            sigmoidVal = sigmoidCalc(wxbVal);
             sigmoidVec.push_back(sigmoidVal);
         }
-
-        for (j = 0; j < param.wtSet.size(); j++) {
+        //这个是更新每个theta的地方，这个地方也是可以分配的多核去，不受到到相同的其他的影响
+       //single thread solution 
+        for (j = 0; j < param.wtSet.size(); j++){
             param.wtSet[j] += stepSize * gradientSlope(trainDataSet, j, sigmoidVec);
         }
+
+        //multi thread solution 
+        int start,end;
+        start=0;
+        end= param.wtSet.size();
+        cout<<"进程前是wt0 是多少："<<param.wtSet[0]<<endl;
+        thread t(wtCal,&param,start,end);
+        t.join();
+        cout<<"进程后是wt0 是多少："<<param.wtSet[0]<<endl;
 
         if (i % train_show_step == 0) {
             cout << "iter " << i << ". updated weight value is : ";
@@ -250,7 +356,7 @@ void LR::train()
 
 void LR::predict()
 {
-    double sigVal;
+    float sigVal;
     int predictVal;
 
     loadTestData();
@@ -267,8 +373,8 @@ int LR::loadModel()
 {
     string line;
     int i;
-    vector<double> wtTmp;
-    double dbt;
+    vector<float> wtTmp;
+    float dbt;
 
     ifstream fin(weightParamFile.c_str());
     if (!fin) {
@@ -317,7 +423,7 @@ bool LR::loadTestData()
     ifstream infile(testFile.c_str());
     string line,tmp;
     int i = 0;
-	vector<double> feature;
+	vector<float> feature;
 	
     if (!infile) {
         cout << "打开训练文件失败" << endl;
@@ -387,7 +493,7 @@ int main(int argc, char *argv[])
     vector<int> answerVec;
     vector<int> predictVec;
     int correctCount;
-    double accurate;
+    float accurate;
 //cloud
 
     // string trainFile = "/data/train_data.txt";
@@ -398,6 +504,8 @@ int main(int argc, char *argv[])
 
 //local 
     string trainFile = "./data/train_data.txt";
+    // string trainFile = "./cppmutithread/data/train_data1.txt";
+
     string testFile = "./data/test_data.txt";
     string predictFile = "./projects/student/result.txt";
 
@@ -412,13 +520,13 @@ int main(int argc, char *argv[])
 	int start = clock();
 	cout << "this is start" << endl;
     LR logist(trainFile, testFile, predictFile);
-	cout<<" the  load file cost is"<<(" %.3lf\n", double(clock() - start) / CLOCKS_PER_SEC)<<endl;
+	cout<<" the  load file cost is"<<(" %.3lf\n", float(clock() - start) / CLOCKS_PER_SEC)<<endl;
 
 
     cout << "ready to train model" << endl;
     start = clock();
     logist.train();
-	cout<<" the  train time cost is"<<(" %.3lf\n", double(clock() - start) / CLOCKS_PER_SEC)<<endl;
+	cout<<" the  train time cost is"<<(" %.3lf\n", float(clock() - start) / CLOCKS_PER_SEC)<<endl;
     cout << "training ends, ready to store the model" << endl;
     logist.storeModel();
 
@@ -430,7 +538,7 @@ int main(int argc, char *argv[])
     cout << "let's have a prediction test" << endl;
     start = clock();
     logist.predict();
-	cout<<" the  preidct file  cost is"<<(" %.3lf\n", double(clock() - start) / CLOCKS_PER_SEC);
+	cout<<" the  preidct file  cost is"<<(" %.3lf\n", float(clock() - start) / CLOCKS_PER_SEC);
 
 #ifdef TEST
     loadAnswerData(predictFile, predictVec);
@@ -446,7 +554,7 @@ int main(int argc, char *argv[])
         }
     }
 
-    accurate = ((double)correctCount) / answerVec.size();
+    accurate = ((float)correctCount) / answerVec.size();
     cout << "the prediction accuracy is " << accurate << endl;
 #endif
 
