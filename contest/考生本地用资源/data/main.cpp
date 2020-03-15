@@ -5,8 +5,9 @@
 #include <cmath>
 #include <cstdlib>
 #include <thread>
+
 using namespace std;
-// #define TESTs
+// #define TEST
 struct Data {
     vector<float> features;
     int label;
@@ -58,7 +59,7 @@ private:
     int featuresNum;
     const float wtInitV = 1.0;
     static constexpr  float stepSize=0.035;
-    const int maxIterTimes = 300;
+    const int maxIterTimes = 330;
     const float predictTrueThresh = 0.5;
     const int train_show_step = 10;
 };
@@ -92,13 +93,14 @@ bool LR::loadTrainData()
     while (infile) {
         getline(infile, line);
 
-        // if (i==1) {
-        //     i = 0 ;
-        //     continue;
-        // }
-        // else{ i = i + 1;
+        if (i==100) {
+            i = 0 ;
+        }
+        else{ i = i + 1;
+        
+            continue;
 
-        // }
+        }
             
         if (line.size()==0){
             break;
@@ -131,17 +133,26 @@ void LR::dataload(int step,vector<Data> *trainset,string *filename)
     for(int i=1;i<step;i++){
         getline(infile, line);
     }
+    int i =0;
 
     while (infile) {
 
         getline(infile, line);
-        // if (i==1) {
-        //     i = 0 ;
-        //     continue;
-        // }
-        // else{ i = i + 1;
+        if (i==40) {
+            i = 0 ;
+        }
+        else{ 
+            i = i + 1;
+            getline(infile, line);
+            getline(infile, line);
+            getline(infile, line);
 
-        // }
+            // getline(infile, line);
+            // getline(infile, line);
+            // getline(infile, line);
+            // getline(infile, line);
+            continue;
+        }
             
         if (line.size()==0){
             break;
@@ -158,6 +169,7 @@ void LR::dataload(int step,vector<Data> *trainset,string *filename)
         getline(infile, line);
         getline(infile, line);
         getline(infile, line);
+        
     }
 
 }
@@ -168,26 +180,90 @@ bool LR::loadTrainDatamulti()
     vector<Data> trainDataSet1;
     vector<Data> trainDataSet2;
     vector<Data> trainDataSet3;
+    vector<Data> trainDataSet4;
+    // vector<Data> trainDataSet5;
+    // vector<Data> trainDataSet6;
+    // vector<Data> trainDataSet7;
+    // vector<Data> trainDataSet8;
+
+    // vector<Data> trainDataSet9;
+    // vector<Data> trainDataSet10;
+    // vector<Data> trainDataSet11;
+    // vector<Data> trainDataSet12;
+    // vector<Data> trainDataSet13;
+    // vector<Data> trainDataSet14;
+    // vector<Data> trainDataSet15;
+
+
     thread t1(dataload,1,&trainDataSet,&trainFile);
     thread t2(dataload,2,&trainDataSet1,&trainFile);
     thread t3(dataload,3,&trainDataSet2,&trainFile);
     thread t4(dataload,4,&trainDataSet3,&trainFile);
+
+    // thread t5(dataload,1,&trainDataSet4,&trainFile);
+    // thread t6(dataload,2,&trainDataSet5,&trainFile);
+    // thread t7(dataload,3,&trainDataSet6,&trainFile);
+    // thread t8(dataload,4,&trainDataSet7,&trainFile);
+
+    // thread t9(dataload,1,&trainDataSet8,&trainFile);
+    // thread t10(dataload,2,&trainDataSet9,&trainFile);
+    // thread t11(dataload,3,&trainDataSet10,&trainFile);
+    // thread t12(dataload,4,&trainDataSet11,&trainFile);
+
+    // thread t13(dataload,1,&trainDataSet12,&trainFile);
+    // thread t14(dataload,2,&trainDataSet13,&trainFile);
+    // thread t15(dataload,3,&trainDataSet14,&trainFile);
+    // thread t16(dataload,4,&trainDataSet15,&trainFile);
+
+
+
+
     t1.join();
     t2.join();
     t3.join();
     t4.join();
+    // t5.join();
+    // t6.join();
+    // t7.join();
+    // t8.join();
+
+    // t9.join();
+    // t10.join();
+    // t11.join();
+    // t12.join();
+    // t13.join();
+    // t14.join();
+    // t15.join();
+    // t16.join();
 
 
-    // cout<<"Trainset 1 "<<trainDataSet.size()<<endl;
-    // cout<<"Trainset 2 "<<trainDataSet1.size()<<endl;
-    // cout<<"Trainset 3 "<<trainDataSet2.size()<<endl;
-    // cout<<"Trainset 4 "<<trainDataSet3.size()<<endl;
+    cout<<"Trainset 1 "<<trainDataSet.size()<<endl;
+    cout<<"Trainset 2 "<<trainDataSet1.size()<<endl;
+    cout<<"Trainset 3 "<<trainDataSet2.size()<<endl;
+    cout<<"Trainset 4 "<<trainDataSet3.size()<<endl;
 
     trainDataSet.insert(trainDataSet.end(),trainDataSet1.begin(),trainDataSet1.end());
     trainDataSet.insert(trainDataSet.end(),trainDataSet2.begin(),trainDataSet2.end());
     trainDataSet.insert(trainDataSet.end(),trainDataSet3.begin(),trainDataSet3.end());
 
-    // cout<<"this is main "<<trainDataSet.size()<<endl;
+    // trainDataSet.insert(trainDataSet.end(),trainDataSet4.begin(),trainDataSet4.end());
+    // trainDataSet.insert(trainDataSet.end(),trainDataSet5.begin(),trainDataSet5.end());
+    // trainDataSet.insert(trainDataSet.end(),trainDataSet6.begin(),trainDataSet6.end());
+    // trainDataSet.insert(trainDataSet.end(),trainDataSet7.begin(),trainDataSet7.end());
+
+    // trainDataSet.insert(trainDataSet.end(),trainDataSet8.begin(),trainDataSet8.end());
+    // trainDataSet.insert(trainDataSet.end(),trainDataSet9.begin(),trainDataSet9.end());
+    // trainDataSet.insert(trainDataSet.end(),trainDataSet10.begin(),trainDataSet10.end());
+    // trainDataSet.insert(trainDataSet.end(),trainDataSet11.begin(),trainDataSet11.end());
+
+    // trainDataSet.insert(trainDataSet.end(),trainDataSet12.begin(),trainDataSet12.end());
+    // trainDataSet.insert(trainDataSet.end(),trainDataSet13.begin(),trainDataSet13.end());
+    // trainDataSet.insert(trainDataSet.end(),trainDataSet14.begin(),trainDataSet14.end());
+    // trainDataSet.insert(trainDataSet.end(),trainDataSet15.begin(),trainDataSet15.end());
+
+
+
+    cout<<"this is main "<<trainDataSet.size()<<endl;
    
 
 
@@ -243,15 +319,15 @@ void LR::initParam()
 bool LR::init()
 {
     trainDataSet.clear();
-    // bool status = loadTrainData();
-    bool status = loadTrainDatamulti();
+    bool status = loadTrainData();
+    // bool status = loadTrainDatamulti();
 
     if (status != true) {
         return false;
     }
     featuresNum = trainDataSet[0].features.size();
     param.wtSet.clear();
-    initParam();
+    initParam(); 
     return true;
 }
 
@@ -602,7 +678,7 @@ int main(int argc, char *argv[])
 
 //local 
     // string trainFile = "./data/train_data.txt";
-    // // string trainFile = "./cppmutithread/data/train_data1.txt";
+    // string trainFile = "./cppmutithread/data/train_data1.txt";
 
     // string testFile = "./data/test_data.txt";
     // string predictFile = "./projects/student/result.txt";
@@ -621,7 +697,7 @@ int main(int argc, char *argv[])
 	// cout<<" the  load file cost is"<<(" %.3lf\n", float(clock() - start) / CLOCKS_PER_SEC)<<endl;
 
 
-    cout << "ready to train model" << endl;
+    // cout << "ready to train model" << endl;
     // start = clock();
     logist.train();
 	// cout<<" the  train time cost is"<<(" %.3lf\n", float(clock() - start) / CLOCKS_PER_SEC)<<endl;
@@ -658,3 +734,14 @@ int main(int argc, char *argv[])
 
     return 0;
 }
+//16线程 读取8w 数据 7.2s
+//8线程 读取8w 数据 用了 6.87s
+//4线程 读取8w 数据 用了 7.86s
+
+//线上测试结果    单线程    i=6 80s
+//              多线程    i=6 90s
+//              多线程    i=20 32s
+
+//                单线程  i=100  15s
+
+//  3.16  用 python  采用lr方法， 设置i=100 测试结果
